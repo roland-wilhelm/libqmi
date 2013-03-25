@@ -76,3 +76,6 @@ docs/reference/libqmi-glib/html
 docs/reference/libqmi-glib/tmpl
 docs/reference/libqmi-glib/xml
 docs/reference/libqmi-glib/.libs
+.cproject
+.project
+Debug/
