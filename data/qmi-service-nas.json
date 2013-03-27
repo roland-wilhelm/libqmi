@@ -1327,6 +1327,8 @@
 	                                        "format"        : "guint16" },
 	                                      { "name"          : "Global Cell ID",
 	                                        "format"        : "guint32" },
+	                                      { "name"          : "Earfcn",
+	                                        "format"        : "guint16" },
 	                                      { "name"          : "Serving Cell ID",
 	                                        "format"        : "guint16" },
 	                                      { "name"          : "Cell Resel Prio",
