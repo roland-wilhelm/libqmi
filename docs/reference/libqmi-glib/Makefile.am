@@ -12,7 +12,8 @@ ALL_SECTIONS = \
 	$(top_builddir)/libqmi-glib/generated/qmi-nas.sections \
 	$(top_builddir)/libqmi-glib/generated/qmi-wds.sections \
 	$(top_builddir)/libqmi-glib/generated/qmi-wms.sections \
-	$(top_builddir)/libqmi-glib/generated/qmi-pds.sections
+	$(top_builddir)/libqmi-glib/generated/qmi-pds.sections \
+	$(top_builddir)/libqmi-glib/generated/qmi-pbm.sections
 
 $(DOC_MODULE)-sections.mstamp: $(ALL_SECTIONS)
 	$(AM_V_GEN) \
@@ -33,6 +34,7 @@ DOC_SOURCE_DIR = \
 # Used for dependencies
 HFILE_GLOB = \
 	$(top_srcdir)/libqmi-glib/*.h \
+	$(top_builddir)/libqmi-glib/*.h \
 	$(top_builddir)/libqmi-glib/generated/*.h
 CFILE_GLOB = \
 	$(top_srcdir)/libqmi-glib/*.c \
@@ -46,7 +48,7 @@ IGNORE_HFILES = \
 
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(srcdir) \
 	-I$(top_srcdir) \
 	-I$(top_builddir) \
@@ -66,12 +68,7 @@ expand_content_files =
 
 extra_files =
 
-if ENABLE_GTK_DOC
 include $(top_srcdir)/gtk-doc.make
-else
-EXTRA_DIST =
-CLEANFILES =
-endif
 
 EXTRA_DIST += \
 	libqmi-glib-common.sections \

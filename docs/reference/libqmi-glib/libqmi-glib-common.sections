@@ -1,4 +1,13 @@
 <SECTION>
+<FILE>qmi-version</FILE>
+<TITLE>Version checks</TITLE>
+QMI_MAJOR_VERSION
+QMI_MINOR_VERSION
+QMI_MICRO_VERSION
+QMI_CHECK_VERSION
+</SECTION>
+
+<SECTION>
 <FILE>qmi-client</FILE>
 <TITLE>QmiClient</TITLE>
 QMI_CID_NONE
@@ -54,6 +63,9 @@ qmi_device_set_instance_id
 qmi_device_set_instance_id_finish
 qmi_device_command
 qmi_device_command_finish
+QmiDeviceServiceVersionInfo
+qmi_device_get_service_version_info
+qmi_device_get_service_version_info_finish
 <SUBSECTION Standard>
 QmiDeviceClass
 QMI_DEVICE
@@ -202,6 +214,8 @@ QmiNasWcdmaHsService
 QmiNasCellBroadcastCapability
 QmiNasSimRejectState
 QmiNasCdmaPilotType
+QmiNasDayOfWeek
+QmiNasDaylightSavingsAdjustment
 <SUBSECTION Methods>
 qmi_nas_radio_interface_get_string
 qmi_nas_active_band_get_string
@@ -239,6 +253,8 @@ qmi_nas_wcdma_hs_service_get_string
 qmi_nas_cell_broadcast_capability_get_string
 qmi_nas_sim_reject_state_get_string
 qmi_nas_cdma_pilot_type_get_string
+qmi_nas_day_of_week_get_string
+qmi_nas_daylight_savings_adjustment_get_string
 <SUBSECTION Private>
 qmi_nas_radio_interface_build_string_from_mask
 qmi_nas_active_band_build_string_from_mask
@@ -274,6 +290,8 @@ qmi_nas_wcdma_hs_service_build_string_from_mask
 qmi_nas_cell_broadcast_capability_build_string_from_mask
 qmi_nas_sim_reject_state_build_string_from_mask
 qmi_nas_cdma_pilot_type_build_string_from_mask
+qmi_nas_day_of_week_build_string_from_mask
+qmi_nas_daylight_savings_adjustment_build_string_from_mask
 <SUBSECTION Standard>
 QMI_TYPE_NAS_ACTIVE_BAND
 QMI_TYPE_NAS_ATTACH_STATE
@@ -309,6 +327,8 @@ QMI_TYPE_NAS_SIM_REJECT_STATE
 QMI_TYPE_NAS_TD_SCDMA_BAND_PREFERENCE
 QMI_TYPE_NAS_WCDMA_HS_SERVICE
 QMI_TYPE_NAS_CDMA_PILOT_TYPE
+QMI_TYPE_NAS_DAY_OF_WEEK
+QMI_TYPE_NAS_DAYLIGHT_SAVINGS_ADJUSTMENT
 qmi_nas_active_band_get_type
 qmi_nas_attach_state_get_type
 qmi_nas_call_barring_status_get_type
@@ -343,6 +363,8 @@ qmi_nas_sim_reject_state_get_type
 qmi_nas_td_scdma_band_preference_get_type
 qmi_nas_wcdma_hs_service_get_type
 qmi_nas_cdma_pilot_type_get_type
+qmi_nas_day_of_week_get_type
+qmi_nas_daylight_savings_adjustment_get_type
 </SECTION>
 
 <SECTION>
@@ -372,6 +394,7 @@ QmiWdsPdpType
 QmiWdsTrafficClass
 QmiWdsAuthentication
 QmiWdsProfileType
+QmiWdsPacketStatisticsMaskFlag
 <SUBSECTION Methods>
 qmi_wds_ip_family_get_string
 qmi_wds_technology_preference_build_string_from_mask
@@ -399,6 +422,7 @@ qmi_wds_pdp_type_get_string
 qmi_wds_traffic_class_get_string
 qmi_wds_authentication_build_string_from_mask
 qmi_wds_profile_type_get_string
+qmi_wds_packet_statistics_mask_flag_build_string_from_mask
 <SUBSECTION Private>
 qmi_wds_ip_family_build_string_from_mask
 qmi_wds_technology_preference_get_string
@@ -425,6 +449,7 @@ qmi_wds_pdp_type_build_string_from_mask
 qmi_wds_traffic_class_build_string_from_mask
 qmi_wds_authentication_get_string
 qmi_wds_profile_type_build_string_from_mask
+qmi_wds_packet_statistics_mask_flag_get_string
 <SUBSECTION Standard>
 QMI_TYPE_WDS_AUTHENTICATION
 QMI_TYPE_WDS_CALL_END_REASON
@@ -451,6 +476,7 @@ QMI_TYPE_WDS_VERBOSE_CALL_END_REASON_IPV6
 QMI_TYPE_WDS_VERBOSE_CALL_END_REASON_MIP
 QMI_TYPE_WDS_VERBOSE_CALL_END_REASON_PPP
 QMI_TYPE_WDS_VERBOSE_CALL_END_REASON_TYPE
+QMI_TYPE_WDS_PACKET_STATISTICS_MASK_FLAG
 qmi_wds_authentication_get_type
 qmi_wds_call_end_reason_get_type
 qmi_wds_call_type_get_type
@@ -476,6 +502,7 @@ qmi_wds_verbose_call_end_reason_ipv6_get_type
 qmi_wds_verbose_call_end_reason_mip_get_type
 qmi_wds_verbose_call_end_reason_ppp_get_type
 qmi_wds_verbose_call_end_reason_type_get_type
+qmi_wds_packet_statistics_mask_flag_get_type
 </SECTION>
 
 <SECTION>
@@ -595,6 +622,28 @@ qmi_pds_data_valid_get_type
 qmi_pds_operation_mode_get_type
 qmi_pds_position_session_status_get_type
 qmi_pds_tracking_session_state_get_type
+</SECTION>
+
+<SECTION>
+<FILE>qmi-enums-pbm</FILE>
+QmiPbmEventRegistrationFlag
+QmiPbmPhonebookType
+QmiPbmSessionType
+<SUBSECTION Methods>
+qmi_pbm_event_registration_flag_build_string_from_mask
+qmi_pbm_phonebook_type_build_string_from_mask
+qmi_pbm_session_type_get_string
+<SUBSECTION Private>
+qmi_pbm_event_registration_flag_get_string
+qmi_pbm_phonebook_type_get_string
+qmi_pbm_session_type_build_string_from_mask
+<SUBSECTION Standard>
+QMI_TYPE_PBM_EVENT_REGISTRATION_FLAG
+QMI_TYPE_PBM_PHONEBOOK_TYPE
+QMI_TYPE_PBM_SESSION_TYPE
+qmi_pbm_event_registration_flag_get_type
+qmi_pbm_phonebook_type_get_type
+qmi_pbm_session_type_get_type
 </SECTION>
 
 <SECTION>

@@ -33,6 +33,8 @@ gboolean qmicli_read_pin_id_from_string         (const gchar *str,
                                                  QmiDmsUimPinId *out);
 gboolean qmicli_read_operating_mode_from_string (const gchar *str,
                                                  QmiDmsOperatingMode *out);
+gboolean qmicli_read_rat_mode_pref_from_string  (const gchar *str,
+                                                 QmiNasRatModePreference *out);
 gboolean qmicli_read_facility_from_string       (const gchar *str,
                                                  QmiDmsUimFacility *out);
 gboolean qmicli_read_enable_disable_from_string (const gchar *str,
@@ -40,6 +42,10 @@ gboolean qmicli_read_enable_disable_from_string (const gchar *str,
 gboolean qmicli_read_firmware_id_from_string    (const gchar *str,
                                                  QmiDmsFirmwareImageType *out_type,
                                                  guint *out_index);
+
+gboolean qmicli_read_radio_interface_from_string (const gchar *str,
+                                                  QmiNasRadioInterface *out);
+
 gboolean qmicli_read_non_empty_string           (const gchar *str,
                                                  const gchar *description,
                                                  gchar **out);

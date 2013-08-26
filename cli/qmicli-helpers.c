@@ -148,6 +148,43 @@ qmicli_read_operating_mode_from_string (const gchar *str,
 }
 
 gboolean
+qmicli_read_rat_mode_pref_from_string (const gchar *str,
+                                       QmiNasRatModePreference *out)
+{
+    GType type;
+    GFlagsClass *flags_class;
+    GFlagsValue *flags_value;
+    gboolean success = TRUE, set = FALSE;
+    char **items, **iter;
+
+    type = qmi_nas_rat_mode_preference_get_type ();
+    flags_class = G_FLAGS_CLASS (g_type_class_ref (type));
+
+    items = g_strsplit_set (str, "|", 0);
+    for (iter = items; iter && *iter && success; iter++) {
+        if (!*iter[0])
+            continue;
+
+        flags_value = g_flags_get_value_by_nick (flags_class, *iter);
+        if (flags_value) {
+            *out |= (QmiNasRatModePreference)flags_value->value;
+            set = TRUE;
+        } else {
+            g_printerr ("error: invalid rat mode pref value given: '%s'\n", *iter);
+            success = FALSE;
+        }
+    }
+
+    if (!set)
+        g_printerr ("error: invalid rat mode pref input given: '%s'\n", str);
+
+    if (items)
+        g_strfreev (items);
+    g_type_class_unref (flags_class);
+    return success && set;
+}
+
+gboolean
 qmicli_read_facility_from_string (const gchar *str,
                                   QmiDmsUimFacility *out)
 {
@@ -224,6 +261,27 @@ qmicli_read_firmware_id_from_string (const gchar *str,
     }
 
     return qmicli_read_uint_from_string (index_str, out_index);
+}
+
+gboolean
+qmicli_read_radio_interface_from_string (const gchar *str,
+                                         QmiNasRadioInterface *out)
+{
+    GType type;
+    GEnumClass *enum_class;
+    GEnumValue *enum_value;
+
+    type = qmi_nas_radio_interface_get_type ();
+    enum_class = G_ENUM_CLASS (g_type_class_ref (type));
+    enum_value = g_enum_get_value_by_nick (enum_class, str);
+
+    if (enum_value)
+        *out = (QmiNasRadioInterface)enum_value->value;
+    else
+        g_printerr ("error: invalid radio interface value given: '%s'\n", str);
+
+    g_type_class_unref (enum_class);
+    return !!enum_value;
 }
 
 gboolean

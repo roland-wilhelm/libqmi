@@ -50,6 +50,7 @@ static gchar *start_network_str;
 static gboolean follow_network_flag;
 static gchar *stop_network_str;
 static gboolean get_packet_service_status_flag;
+static gboolean get_packet_statistics_flag;
 static gboolean get_data_bearer_technology_flag;
 static gboolean get_current_data_bearer_technology_flag;
 static gboolean reset_flag;
@@ -70,6 +71,10 @@ static GOptionEntry entries[] = {
     },
     { "wds-get-packet-service-status", 0, 0, G_OPTION_ARG_NONE, &get_packet_service_status_flag,
       "Get packet service status",
+      NULL
+    },
+    { "wds-get-packet-statistics", 0, 0, G_OPTION_ARG_NONE, &get_packet_statistics_flag,
+      "Get packet statistics",
       NULL
     },
     { "wds-get-data-bearer-technology", 0, 0, G_OPTION_ARG_NONE, &get_data_bearer_technology_flag,
@@ -118,6 +123,7 @@ qmicli_wds_options_enabled (void)
     n_actions = (!!start_network_str +
                  !!stop_network_str +
                  get_packet_service_status_flag +
+                 get_packet_statistics_flag +
                  get_data_bearer_technology_flag +
                  get_current_data_bearer_technology_flag +
                  reset_flag +
@@ -241,7 +247,6 @@ timeout_get_packet_service_status_ready (QmiClientWds *client,
         g_printerr ("error: operation failed: %s\n",
                     error->message);
         g_error_free (error);
-        shutdown (FALSE);
         return;
     }
 
@@ -249,7 +254,6 @@ timeout_get_packet_service_status_ready (QmiClientWds *client,
         g_printerr ("error: couldn't get packet service status: %s\n", error->message);
         g_error_free (error);
         qmi_message_wds_get_packet_service_status_output_unref (output);
-        shutdown (FALSE);
         return;
     }
 
@@ -262,7 +266,13 @@ timeout_get_packet_service_status_ready (QmiClientWds *client,
              qmi_device_get_path_display (ctx->device),
              qmi_wds_connection_status_get_string (status));
     qmi_message_wds_get_packet_service_status_output_unref (output);
-    shutdown (TRUE);
+
+    /* If packet service checks detect disconnection, halt --wds-follow-network */
+    if (status != QMI_WDS_CONNECTION_STATUS_CONNECTED) {
+        g_print ("[%s] Stopping after detecting disconnection\n",
+                 qmi_device_get_path_display (ctx->device));
+        internal_stop_network (NULL, ctx->packet_data_handle);
+    }
 }
 
 static gboolean
@@ -392,6 +402,73 @@ get_packet_service_status_ready (QmiClientWds *client,
              qmi_wds_connection_status_get_string (status));
 
     qmi_message_wds_get_packet_service_status_output_unref (output);
+    shutdown (TRUE);
+}
+
+static void
+get_packet_statistics_ready (QmiClientWds *client,
+                             GAsyncResult *res)
+{
+    GError *error = NULL;
+    QmiMessageWdsGetPacketStatisticsOutput *output;
+    guint32 val32;
+    guint64 val64;
+
+    output = qmi_client_wds_get_packet_statistics_finish (client, res, &error);
+    if (!output) {
+        g_printerr ("error: operation failed: %s\n",
+                    error->message);
+        g_error_free (error);
+        shutdown (FALSE);
+        return;
+    }
+
+    if (!qmi_message_wds_get_packet_statistics_output_get_result (output, &error)) {
+        g_printerr ("error: couldn't get packet statistics: %s\n", error->message);
+        g_error_free (error);
+        qmi_message_wds_get_packet_statistics_output_unref (output);
+        shutdown (FALSE);
+        return;
+    }
+
+    g_print ("[%s] Connection statistics:\n",
+             qmi_device_get_path_display (ctx->device));
+
+    if (qmi_message_wds_get_packet_statistics_output_get_tx_packets_ok (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tTX packets OK: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_rx_packets_ok (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tRX packets OK: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_tx_packets_error (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tTX packets error: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_rx_packets_error (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tRX packets error: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_tx_overflows (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tTX overflows: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_rx_overflows (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tRX overflows: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_tx_packets_dropped (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tTX packets dropped: %u\n", val32);
+    if (qmi_message_wds_get_packet_statistics_output_get_rx_packets_dropped (output, &val32, NULL) &&
+        val32 != 0xFFFFFFFF)
+        g_print ("\tRX packets dropped: %u\n", val32);
+
+    if (qmi_message_wds_get_packet_statistics_output_get_tx_bytes_ok (output, &val64, NULL))
+        g_print ("\tTX bytes OK: %" G_GUINT64_FORMAT "\n", val64);
+    if (qmi_message_wds_get_packet_statistics_output_get_rx_bytes_ok (output, &val64, NULL))
+        g_print ("\tRX bytes OK: %" G_GUINT64_FORMAT "\n", val64);
+    if (qmi_message_wds_get_packet_statistics_output_get_last_call_tx_bytes_ok (output, &val64, NULL))
+        g_print ("\tTX bytes OK (last): %" G_GUINT64_FORMAT "\n", val64);
+    if (qmi_message_wds_get_packet_statistics_output_get_last_call_rx_bytes_ok (output, &val64, NULL))
+        g_print ("\tRX bytes OK (last): %" G_GUINT64_FORMAT "\n", val64);
+
+    qmi_message_wds_get_packet_statistics_output_unref (output);
     shutdown (TRUE);
 }
 
@@ -671,6 +748,36 @@ qmicli_wds_run (QmiDevice *device,
                                                   ctx->cancellable,
                                                   (GAsyncReadyCallback)get_packet_service_status_ready,
                                                   NULL);
+        return;
+    }
+
+    /* Request to get packet statistics? */
+    if (get_packet_statistics_flag) {
+        QmiMessageWdsGetPacketStatisticsInput *input;
+
+        input = qmi_message_wds_get_packet_statistics_input_new ();
+        qmi_message_wds_get_packet_statistics_input_set_mask (
+            input,
+            (QMI_WDS_PACKET_STATISTICS_MASK_FLAG_TX_PACKETS_OK      |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_RX_PACKETS_OK      |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_TX_PACKETS_ERROR   |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_RX_PACKETS_ERROR   |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_TX_OVERFLOWS       |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_RX_OVERFLOWS       |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_TX_BYTES_OK        |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_RX_BYTES_OK        |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_TX_PACKETS_DROPPED |
+             QMI_WDS_PACKET_STATISTICS_MASK_FLAG_RX_PACKETS_DROPPED),
+            NULL);
+
+        g_debug ("Asynchronously getting packet statistics...");
+        qmi_client_wds_get_packet_statistics (ctx->client,
+                                              input,
+                                              10,
+                                              ctx->cancellable,
+                                              (GAsyncReadyCallback)get_packet_statistics_ready,
+                                              NULL);
+        qmi_message_wds_get_packet_statistics_input_unref (input);
         return;
     }
 

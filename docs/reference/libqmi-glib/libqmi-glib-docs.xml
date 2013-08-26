@@ -39,6 +39,7 @@
 
   <chapter>
     <title>Core</title>
+    <xi:include href="xml/qmi-version.xml"/>
     <xi:include href="xml/qmi-message.xml"/>
     <xi:include href="xml/qmi-device.xml"/>
     <xi:include href="xml/qmi-client.xml"/>
@@ -115,6 +116,7 @@
     <section>
       <title>NAS Indications</title>
       <xi:include href="xml/qmi-indication-nas-event-report.xml"/>
+      <xi:include href="xml/qmi-indication-nas-network-time.xml"/>
       <xi:include href="xml/qmi-indication-nas-serving-system.xml"/>
       <xi:include href="xml/qmi-indication-nas-system-info.xml"/>
       <xi:include href="xml/qmi-indication-nas-signal-info.xml"/>
@@ -138,6 +140,7 @@
       <xi:include href="xml/qmi-message-nas-get-signal-info.xml"/>
       <xi:include href="xml/qmi-message-nas-config-signal-info.xml"/>
       <xi:include href="xml/qmi-message-nas-get-cdma-position-info.xml"/>
+      <xi:include href="xml/qmi-message-nas-get-tx-rx-info.xml"/>
     </section>
   </chapter>
 
@@ -151,6 +154,7 @@
       <xi:include href="xml/qmi-message-wds-start-network.xml"/>
       <xi:include href="xml/qmi-message-wds-stop-network.xml"/>
       <xi:include href="xml/qmi-message-wds-get-packet-service-status.xml"/>
+      <xi:include href="xml/qmi-message-wds-get-packet-statistics.xml"/>
       <xi:include href="xml/qmi-message-wds-get-current-settings.xml"/>
       <xi:include href="xml/qmi-message-wds-get-data-bearer-technology.xml"/>
       <xi:include href="xml/qmi-message-wds-get-current-data-bearer-technology.xml"/>
@@ -199,6 +203,18 @@
       <xi:include href="xml/qmi-message-pds-set-gps-service-state.xml"/>
       <xi:include href="xml/qmi-message-pds-get-auto-tracking-state.xml"/>
       <xi:include href="xml/qmi-message-pds-set-auto-tracking-state.xml"/>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Phonebook Management Service (PBM)</title>
+    <xi:include href="xml/qmi-client-pbm.xml"/>
+    <xi:include href="xml/qmi-enums-pbm.xml"/>
+    <section>
+      <title>PBM Requests</title>
+      <xi:include href="xml/qmi-message-pbm-indication-register.xml"/>
+      <xi:include href="xml/qmi-message-pbm-get-capabilities.xml"/>
+      <xi:include href="xml/qmi-message-pbm-get-all-capabilities.xml"/>
     </section>
   </chapter>
 

@@ -46,6 +46,7 @@ static gboolean operation_status;
 
 /* Main options */
 static gchar *device_str;
+static gboolean get_service_version_info_flag;
 static gchar *device_set_instance_id_str;
 static gboolean device_open_version_info_flag;
 static gboolean device_open_sync_flag;
@@ -59,6 +60,10 @@ static GOptionEntry main_entries[] = {
     { "device", 'd', 0, G_OPTION_ARG_STRING, &device_str,
       "Specify device path",
       "[PATH]"
+    },
+    { "get-service-version-info", 0, 0, G_OPTION_ARG_NONE, &get_service_version_info_flag,
+      "Get service version info",
+      NULL
     },
     { "device-set-instance-id", 0, 0, G_OPTION_ARG_STRING, &device_set_instance_id_str,
       "Set instance ID",
@@ -191,7 +196,8 @@ generic_options_enabled (void)
     if (checked)
         return !!n_actions;
 
-    n_actions = !!device_set_instance_id_str;
+    n_actions = (!!device_set_instance_id_str +
+                 get_service_version_info_flag);
 
     if (n_actions > 1) {
         g_printerr ("error: too many generic actions requested\n");
@@ -283,6 +289,9 @@ allocate_client_ready (QmiDevice *dev,
     case QMI_SERVICE_WDS:
         qmicli_wds_run (dev, QMI_CLIENT_WDS (client), cancellable);
         return;
+    case QMI_SERVICE_PBM:
+        qmicli_pbm_run (dev, QMI_CLIENT_PBM (client), cancellable);
+        return;
     default:
         g_assert_not_reached ();
     }
@@ -370,6 +379,57 @@ device_set_instance_id (QmiDevice *dev)
 }
 
 static void
+get_service_version_info_ready (QmiDevice *dev,
+                                GAsyncResult *res)
+{
+    GError *error = NULL;
+    GArray *services;
+    guint i;
+
+    services = qmi_device_get_service_version_info_finish (dev, res, &error);
+    if (!services) {
+        g_printerr ("error: couldn't get service version info: %s\n",
+                    error->message);
+        exit (EXIT_FAILURE);
+    }
+
+    g_print ("[%s] Supported versions:\n",
+             qmi_device_get_path_display (dev));
+    for (i = 0; i < services->len; i++) {
+        QmiDeviceServiceVersionInfo *info;
+        const gchar *service_str;
+
+        info = &g_array_index (services, QmiDeviceServiceVersionInfo, i);
+        service_str = qmi_service_get_string (info->service);
+        if (service_str)
+            g_print ("\t%s (%u.%u)\n",
+                     service_str,
+                     info->major_version,
+                     info->minor_version);
+        else
+            g_print ("\tunknown [0x%02x] (%u.%u)\n",
+                     info->service,
+                     info->major_version,
+                     info->minor_version);
+    }
+    g_array_unref (services);
+
+    /* We're done now */
+    qmicli_async_operation_done (TRUE);
+}
+
+static void
+device_get_service_version_info (QmiDevice *dev)
+{
+    g_debug ("Getting service version info...");
+    qmi_device_get_service_version_info (dev,
+                                         10,
+                                         cancellable,
+                                         (GAsyncReadyCallback)get_service_version_info_ready,
+                                         NULL);
+}
+
+static void
 device_open_ready (QmiDevice *dev,
                    GAsyncResult *res)
 {
@@ -386,6 +446,8 @@ device_open_ready (QmiDevice *dev,
 
     if (device_set_instance_id_str)
         device_set_instance_id (dev);
+    else if (get_service_version_info_flag)
+        device_get_service_version_info (dev);
     else
         device_allocate_client (dev);
 }
@@ -450,6 +512,12 @@ parse_actions (void)
         actions_enabled++;
     }
 
+    /* PBM options? */
+    if (qmicli_pbm_options_enabled ()) {
+        service = QMI_SERVICE_PBM;
+        actions_enabled++;
+    }
+
     /* Cannot mix actions from different services */
     if (actions_enabled > 1) {
         g_printerr ("error: cannot execute multiple actions of different services\n");
@@ -483,6 +551,8 @@ int main (int argc, char **argv)
 	                            qmicli_nas_get_option_group ());
 	g_option_context_add_group (context,
 	                            qmicli_wds_get_option_group ());
+	g_option_context_add_group (context,
+	                            qmicli_pbm_get_option_group ());
     g_option_context_add_main_entries (context, main_entries, NULL);
     if (!g_option_context_parse (context, &argc, &argv, &error)) {
         g_printerr ("error: %s\n",
